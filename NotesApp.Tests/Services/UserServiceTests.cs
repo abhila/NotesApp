@@ -1,14 +1,13 @@
-﻿using Moq;
+﻿using System;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+using Moq;
 using NotesApp.Application.DTOs;
 using NotesApp.Application.Interfaces;
 using NotesApp.Application.Services;
 using NotesApp.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Security.Cryptography;
 using Xunit;
 
 namespace NotesApp.Tests.Services
@@ -61,5 +60,52 @@ namespace NotesApp.Tests.Services
             mockTokenService.Verify(t => t.GenerateToken(user), Times.Once);
         }
 
+        [Fact]
+        public async Task RegisterAsync_ShouldCreateUser_HashPassword_AndCallRepository()
+        {
+            // Arrange
+            var mockRepo = new Mock<IUserRepository>();
+            var mockToken = new Mock<ITokenService>();
+
+            // Simulate repository assigning an Id
+            mockRepo
+                .Setup(r => r.AddAsync(It.IsAny<User>()))
+                .Callback<User>(u => u.Id = 11)
+                .Returns(Task.CompletedTask);
+
+            mockRepo
+                .Setup(r => r.SaveChangesAsync())
+                .Returns(Task.CompletedTask);
+
+            var service = new UserService(mockRepo.Object, mockToken.Object);
+
+            var dto = new UserRegisterDto
+            {
+                Username = "alice",
+                Email = "alice@example.com",
+                Password = "P@ssw0rd!"
+            };
+
+            // Act
+            var result = await service.RegisterAsync(dto);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(11, result.Id);
+            Assert.Equal(dto.Username, result.Username);
+            Assert.Equal(dto.Email, result.Email);
+            Assert.NotNull(result.PasswordHash);
+            Assert.NotNull(result.PasswordSalt);
+            Assert.True(result.PasswordHash.Length > 0);
+            Assert.True(result.PasswordSalt.Length > 0);
+
+            // Verify stored hash matches recomputed hash using stored salt
+            using var hmac = new HMACSHA256(result.PasswordSalt);
+            var expectedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.Password));
+            Assert.True(expectedHash.SequenceEqual(result.PasswordHash));
+
+            mockRepo.Verify(r => r.AddAsync(It.Is<User>(u => u.Username == dto.Username && u.Email == dto.Email)), Times.Once);
+            mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
+        }
     }
 }

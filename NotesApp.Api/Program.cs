@@ -80,13 +80,10 @@ var app = builder.Build();
 // Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
-    // Built-in OpenAPI spec
-    app.MapOpenApi();
-
-    // Swagger UI consuming that spec
+    app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/openapi/v1.json", "NotesApp API v1");
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "NotesApp API v1");
     });
 }
 
