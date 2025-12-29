@@ -30,6 +30,17 @@ namespace NotesApp.Infrastructure.Data
                 .HasMany(u => u.Notes)
                 .WithOne(n => n.User)
                 .HasForeignKey(n => n.UserId);
+
+            // ✅ Unique constraint on Username
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+
+            // ✅ Unique constraint on Email
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
         }
 
     }
