@@ -50,3 +50,5 @@ NotesApp.Api           → Controllers, Startup, Swagger
 - Azure SQL integration
 - More unit test coverage
 
+## 📜 License
+This project is licensed under the [MIT License](LICENSE).
