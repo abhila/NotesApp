@@ -31,7 +31,7 @@ NotesApp.Api           → Controllers, Startup, Swagger
 
 ## ⚙️ Setup Instructions
 1. Clone the repo:
-   git clone https://github.com/yourusername/NotesApp.git
+   git clone https://github.com/abhila/NotesApp
    cd NotesApp
 2. Update appsettings.json with your SQL Server connection string.
 3. Apply migrations:
